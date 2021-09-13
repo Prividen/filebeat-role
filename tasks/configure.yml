@@ -1,0 +1,71 @@
+---
+- name: Configure Filebeat
+  become: true
+  template:
+    src: filebeat.yml.j2
+    mode: 0644
+    dest: /etc/filebeat/filebeat.yml
+  notify: restart Filebeat
+
+- name: Check if system module was already enabled
+  stat:
+    path: /etc/filebeat/modules.d/system.yml
+  register: fb_system_module
+  tags: filebeat
+
+- name: Custom system module path
+  become: true
+  copy:
+    dest: /etc/filebeat/modules.d/system.yml.disabled
+    content: |
+      - module: system
+        syslog:
+          enabled: true
+          var.paths: ["/var/log/dnf.log", "/var/log/filebeat/filebeat"]
+        auth:
+          enabled: true
+    mode: 0644
+  when: not fb_system_module.stat.exists
+  tags: filebeat
+
+- name: Wait for Elasticsearch port is up
+  wait_for:
+    host: "{{ hostvars[item].ansible_all_ipv4_addresses[0] }}"
+    port: 9200
+    timeout: 30
+  loop: "{{ elasticsearch_hosts }}"
+  tags: filebeat
+
+- name: Wait for Kibana port is up
+  wait_for:
+    host: "{{ hostvars[kibana_host].ansible_all_ipv4_addresses[0] }}"
+    port: 5601
+    timeout: 30
+  tags: filebeat
+
+- name: Enable filebeat system module
+  become: true
+  command:
+    cmd: filebeat modules enable system
+    chdir: /usr/share/filebeat/bin
+    creates: /etc/filebeat/modules.d/system.yml
+  notify: restart Filebeat
+  tags: filebeat
+
+- name: Check if filebeat dashboards was already configured
+  uri:
+    url: "http://{{ hostvars[elasticsearch_hosts[0]].ansible_all_ipv4_addresses[0] }}:9200/.kibana_{{ elk_stack_version }}/_search?q=filebeat"
+    return_content: true
+  register: dashboards_result
+  tags: filebeat
+
+- name: Load Kibana dashboard
+  become: true
+  command:
+    cmd: filebeat setup
+    chdir: /usr/share/filebeat/bin
+  register: filebeat_setup
+  until: filebeat_setup is succeeded
+  notify: restart Filebeat
+  when: dashboards_result.content | length < 1000
+  tags: filebeat
