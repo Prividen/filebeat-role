@@ -12,6 +12,7 @@ Role Variables
 |filebeat_version |7.14.0 | Filebeat version |
 |filebeat_install_type| remote | Install type |
 |elasticsearch_hosts| --- | Array of elasticsearch hosts |
+|logstash_hosts| --- | Array of logstash hosts |
 |kibana_host| --- | Kibana host |
 
 Example Playbook
