@@ -1,8 +1,8 @@
 ---
-output.logstash:
+output.elasticsearch:
   hosts:
-{% for lhost in logstash_hosts %}
-  - "{{ hostvars[lhost].ansible_all_ipv4_addresses[0] }}:5044"
+{% for ehost in elasticsearch_hosts %}
+  - "http://{{ hostvars[ehost].ansible_all_ipv4_addresses[0] }}:9200"
 {% endfor %}
 setup.kibana:
   host: "http://{{ hostvars[kibana_host].ansible_all_ipv4_addresses[0] }}:5601"
