@@ -37,7 +37,7 @@
 
 - name: Wait for Elasticsearch port is up
   wait_for:
-    host: "{{ hostvars[item].ansible_all_ipv4_addresses[0] }}"
+    host: "{{ hostvars[item].ansible_all_ipv4_addresses[0] | default(item) }}"
     port: 9200
     timeout: 30
   loop: "{{ elasticsearch_hosts }}"
@@ -45,7 +45,7 @@
 
 - name: Wait for Kibana port is up
   wait_for:
-    host: "{{ hostvars[kibana_host].ansible_all_ipv4_addresses[0] }}"
+    host: "{{ hostvars[kibana_host].ansible_all_ipv4_addresses[0] | default(kibana_host) }}"
     port: 5601
     timeout: 30
   tags: filebeat
@@ -61,7 +61,9 @@
 
 - name: Check if filebeat dashboards was already configured
   uri:
-    url: "http://{{ hostvars[elasticsearch_hosts[0]].ansible_all_ipv4_addresses[0] }}:9200/.kibana_{{ elk_stack_version }}/_search?q=filebeat"
+    url: "http://{{
+            hostvars[elasticsearch_hosts[0]].ansible_all_ipv4_addresses[0] | default(elasticsearch_hosts[0])
+          }}:9200/.kibana_{{ elk_stack_version }}/_search?q=filebeat"
     return_content: true
   register: dashboards_result
   tags: filebeat

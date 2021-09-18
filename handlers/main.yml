@@ -6,4 +6,3 @@
     state: restarted
     enabled: true
   tags: filebeat
-  when: ansible_virtualization_type != 'docker'
