@@ -64,7 +64,6 @@
     url: "http://{{
             hostvars[elasticsearch_hosts[0]].ansible_all_ipv4_addresses[0] | default(elasticsearch_hosts[0])
           }}:9200/.kibana_{{ elk_stack_version }}/_search?q=filebeat"
-    return_content: true
   register: dashboards_result
   tags: filebeat
 
@@ -76,5 +75,5 @@
   register: filebeat_setup
   until: filebeat_setup is succeeded
   notify: restart Filebeat
-  when: dashboards_result.content | length < 1000
+  when: dashboards_result.json.hits.total.value == 0
   tags: filebeat
