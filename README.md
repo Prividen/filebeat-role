@@ -20,7 +20,7 @@ Example Playbook
     - name: Install Filebeat
       hosts: filebeat
       roles:
-        - filebeat-role
+        - filebeat_role
 
 
 License

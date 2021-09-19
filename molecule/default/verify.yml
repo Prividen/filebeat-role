@@ -43,3 +43,4 @@
     - name: Check if the test string is found
       assert:
         that: filebeat_status.json.hits.total.value == 1
+        quiet: true

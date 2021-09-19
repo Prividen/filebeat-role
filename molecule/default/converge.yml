@@ -2,6 +2,6 @@
 - name: Converge
   hosts: all
   tasks:
-    - name: "Include filebeat-role"
+    - name: "Include filebeat_role"
       include_role:
-        name: "filebeat-role"
+        name: "filebeat_role"
