@@ -42,6 +42,7 @@
     timeout: 30
   loop: "{{ elasticsearch_hosts }}"
   tags: filebeat
+  when: (tox_testing is undefined) or (tox_testing is not true)
 
 - name: Wait for Kibana port is up
   wait_for:
@@ -49,6 +50,7 @@
     port: 5601
     timeout: 30
   tags: filebeat
+  when: (tox_testing is undefined) or (tox_testing is not true)
 
 - name: Enable filebeat system module
   become: true
@@ -66,6 +68,7 @@
           }}:9200/.kibana_{{ elk_stack_version }}/_search?q=filebeat"
   register: dashboards_result
   tags: filebeat
+  when: (tox_testing is undefined) or (tox_testing is not true)
 
 - name: Load Kibana dashboard
   become: true
@@ -75,5 +78,7 @@
   register: filebeat_setup
   until: filebeat_setup is succeeded
   notify: restart Filebeat
-  when: dashboards_result.json.hits.total.value == 0
+  when:
+    - (dashboards_result.json is defined) and (dashboards_result.json.hits.total.value == 0)
+    - (tox_testing is undefined) or (tox_testing is not true)
   tags: filebeat
